@@ -1,0 +1,10 @@
+<resources>
+    <!-- Strings used in the app -->
+    <string name="app_name">Addition App</string>
+    <string name="button_add">Add</string>
+    <string name="edit_text_1">No 1</string>
+    <string name="edit_text_2">No 2</string>
+    <string name="toast_sum_message">Sum of Two Numbers: </string>
+    <string name="toast_empty_field">Please enter values in both fields</string>
+    <string name="toast_invalid_input">Please enter valid numbers</string>
+</resources>
