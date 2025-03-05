@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Results</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+   <h1>Submitted Data</h1>
+   <ul>
+    {{#each formData}}
+    <li>Name: {{this.name}}, Email: {{this.email}}</li>
+    {{/each}}
+</ul>
+<a href="/">Go back to the form</a>
+
+</body>
+</html>
