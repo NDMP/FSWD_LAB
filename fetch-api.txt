@@ -1,0 +1,245 @@
+fetch-api/
+│
+├── public/
+│   ├── css/
+│   │   └── styles.css
+│   └── js/
+│       └── app.js
+│
+├── views/
+│   ├── home.hbs
+│   └── result.hbs
+│
+├── data.json
+├── server.js
+├── package.json
+
+
+
+1. Set up Node.js server:
+First, create the project directory and initialize it:
+
+bash
+Copy
+mkdir fetch-api
+cd fetch-api
+npm init -y
+Install the required dependencies:
+
+bash
+Copy
+npm install express express-handlebars body-parser fs axios
+
+
+2. Create the server.js file:
+js
+Copy
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const axios = require('axios');
+const { json } = require('body-parser');
+
+const app = express();
+const port = 3000;
+
+// Set up Handlebars
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Set up static folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware to parse form data
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve the homepage
+app.get('/', (req, res) => {
+  res.render('home');
+});
+
+// Post form data and store it in a JSON file
+app.post('/submit', (req, res) => {
+  const formData = req.body;
+  fs.readFile('data.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    const jsonData = JSON.parse(data || '[]');
+    jsonData.push(formData);
+    fs.writeFile('data.json', JSON.stringify(jsonData, null, 2), (err) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      res.redirect('/result');
+    });
+  });
+});
+
+// Display stored data on a different page (using Handlebars)
+app.get('/result', (req, res) => {
+  fs.readFile('data.json', 'utf8', (err, data) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    const jsonData = JSON.parse(data || '[]');
+    res.render('result', { employees: jsonData });
+  });
+});
+
+// Fetch and display API data
+app.get('/api', async (req, res) => {
+  try {
+    const apiUrl = 'https://jsonplaceholder.typicode.com/users';
+    const response = await axios.get(apiUrl);
+    const data = response.data;
+
+    // Get user input for ID
+    const userId = parseInt(prompt('Enter the user ID:'));
+
+    // Find the specific user
+    const user = data.find(user => user.id === userId);
+
+    res.render('home', { user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error fetching data');
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
+
+
+3. Create Handlebars Views:
+home.hbs (Form Page):
+html
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fetch API Form</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <h1>Fetch API Form</h1>
+  
+  {{#if user}}
+    <h2>Fetched User Data</h2>
+    <p>Name: {{user.name}}</p>
+    <p>Email: {{user.email}}</p>
+  {{/if}}
+  
+  <form action="/submit" method="POST">
+    <label for="name">Name:</label>
+    <input type="text" name="name" required><br>
+
+    <label for="email">Email:</label>
+    <input type="email" name="email" required><br>
+
+    <button type="submit">Submit</button>
+  </form>
+  
+  <a href="/api">Fetch Data from API</a>
+</body>
+</html>
+result.hbs (Result Page):
+html
+Copy
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stored Data</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <h1>Stored Employee Data</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each employees}}
+        <tr>
+          <td>{{this.name}}</td>
+          <td>{{this.email}}</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</body>
+</html>
+
+
+4. CSS File (public/css/styles.css):
+css
+Copy
+body {
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  color: #333;
+}
+
+form {
+  margin: 20px 0;
+}
+
+input {
+  margin-bottom: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+
+5. JavaScript File (public/js/app.js):
+js
+Copy
+// This file can handle any additional JS functionality like form validation or dynamic interactions
+
+
+6. Create data.json:
+Create an empty data.json file to store the form data:
+
+json
+Copy
+[]
+
+
+7. Run the server:
+Now, you can run the server:
+
+bash
+Copy
+node server.js
+Open your browser and navigate to http://localhost:3000 to view the application.
