@@ -1,0 +1,13 @@
+mkdir server
+cd server
+npm init -y
+npm install express cors fs
+node server.js
+
+
+==================================
+npx create-react-app client
+
+cd client
+npm install axios
+npm start
