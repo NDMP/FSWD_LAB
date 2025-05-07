@@ -1,25 +1,36 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cookieParser = require("cookie-parser");
+const express = require('express'); 
+const fs = require('fs');
+const cors = require('cors');
 const app = express();
 const PORT = 5000;
 
-// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(cookieParser()); // To parse cookies
 
-// Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/auth-app", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.log("Failed to connect to MongoDB", err));
+const DATA_FILE = './data.json';
 
-const authRoutes = require("./routes/auth");
-app.use("/api/auth", authRoutes);
+// Get all todos
+app.get('/todos', (req, res) => {
+  fs.readFile(DATA_FILE, (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file." });
+    res.json(JSON.parse(data));
+  });
+});
 
-// Start Server
+// Add a new todo
+app.post('/todos', (req, res) => {
+  const newTodo = req.body;
+  fs.readFile(DATA_FILE, (err, data) => {
+    if (err) return res.status(500).json({ message: "Error reading file." });
+    const todos = JSON.parse(data);
+    todos.push(newTodo);
+    fs.writeFile(DATA_FILE, JSON.stringify(todos, null, 2), (err) => {
+      if (err) return res.status(500).json({ message: "Error writing file." });
+      res.status(201).json({ message: "Todo added successfully." });
+    });
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });
