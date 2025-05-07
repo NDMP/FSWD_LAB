@@ -1,76 +1,25 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path');
-const { engine } = require('express-handlebars');
-
+const express = require("express");
+const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
 const app = express();
-const PORT = 3000;
+const PORT = 5000;
 
 // Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(cookieParser()); // To parse cookies
 
-// Set up Handlebars
-app.engine('handlebars', engine());
-app.set('view engine', 'handlebars');
+// Connect to MongoDB
+mongoose.connect("mongodb://localhost:27017/auth-app", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.log("Failed to connect to MongoDB", err));
 
-// Serve the form page
-app.get('/', (req, res) => {
-    res.render('home');
-});
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
 
-// Handle form submission
-app.post('/submit', (req, res) => {
-    const formData = req.body;
-    
-    // Read existing data from the JSON file
-    fs.readFile('data.json', (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Error reading file');
-        }
-        
-        let jsonData = [];
-        if (data) {
-            jsonData = JSON.parse(data);
-        }
-
-        // Add the new form data to the JSON array
-        jsonData.push(formData);
-
-        // Save updated data back to the JSON file
-        fs.writeFile('data.json', JSON.stringify(jsonData, null, 2), (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send('Error writing to file');
-            }
-
-            // Redirect to the results page
-            res.redirect('/result');
-        });
-    });
-});
-
-// Display stored data
-app.get('/result', (req, res) => {
-    fs.readFile('data.json', (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).send('Error reading file');
-        }
-
-        const jsonData = data ? JSON.parse(data) : [];
-        res.render('result', { formData: jsonData });
-    });
-});
-
-// Start the server
+// Start Server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
-// Set up Handlebars
-app.engine('handlebars', engine({
-    defaultLayout: 'main',  // This tells Express Handlebars to use the 'main' layout by default
-}));
-app.set('view engine', 'handlebars');
